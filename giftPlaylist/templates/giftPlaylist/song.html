@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+        {% load static %}
+    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
+      <meta charset="utf-8">
+    <title> {{playlist.name}}  </title>
+  </head>
+
+  <body>
+    <div class="jumbotron">
+      <div class="row">
+        <div class="col-6" style="text-align: left;">
+          <a href="{% url 'playlist' playlist.id %}">
+            <button class="btn btn-primary">Back to {{playlist.name}}</button>
+          </a>
+        </div>
+        <div class="col-6" style="text-align: right;">
+          <a href="{% url 'logout' %}">
+            <button class="btn btn-secondary">Logout</button>
+          </a>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="page-header">
+            <h1>Edit Song</h1>
+            <h3>{{song.name}}</h3>
+            <p class="lead">Note: {{song.note}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-6">
+          {% if song.album_artwork %}
+            <img src="{{song.album_artwork}}"  width="400px">
+          {% else %}
+            <img src="https://i.guim.co.uk/img/media/327e46c3ab049358fad80575146be9e0e65686e7/0_0_1023_742/master/1023.jpg?width=700&quality=85&auto=format&fit=max&s=3d74c30c02485d03b0166f4908ddaa35"  width="200px">
+          {% endif %}
+        </div>
+        <div class="col-6">
+          <form action="{% url 'edit_song' song.id %}" method='POST'>
+            <div class="form-group" style="text-align: left;">
+              <label>Note:</label>
+              <textarea class="form-control" rows="5" type="text" name="note" value="{{song.note}}"></textarea>
+            </div>
+            <input class="btn btn-primary btn-lg" type="submit" value="submit">
+            {% csrf_token %}
+          </form>
+        </div>
+      </div>      
+    </div>
+  </body>
+</html>

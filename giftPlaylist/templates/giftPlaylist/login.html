@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
+    <title> Spotify  </title>
+  </head>
+
+  <body>
+    <div class="jumbotron">
+      <h1 class="display-3">Welcome to Gift Playlist!</h1>
+      <p class="lead">Inspired how in the old days, how people would burn a 
+        playlist onto a CD or a cassette tape mix. But nowaday, with digital 
+        technology, people don’t really do this anymore because creating a 
+        playlist on Spotify is really simple and sending it doesn’t hold the 
+        same sentiment. This website is to recreate this experience but with 
+        the current technology available.
+      </p>
+      <hr class="my-4">
+      <p>To get started, please login or register to Spotify using the button below.</p>
+      <p class="lead">
+        <form method="post" action="{% url 'login' %}">
+          <button type="submit" class="btn btn-primary btn-lg btn-block">Login/Register to Spotify</button>
+                {% csrf_token %}
+        </form>
+      </p>
+    </div>
+    
+
+  </body>
+</html>

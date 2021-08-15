@@ -1,0 +1,10 @@
+*.pyc
+db.sqlite3
+migrations
+.DS_Store
+venv
+my_env
+config.ini
+images
+collected_static
+credentials.py

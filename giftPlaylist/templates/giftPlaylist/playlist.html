@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
+    <title> {{playlist.name}}  </title>
+  </head>
+
+  <body>
+    <div class="jumbotron">
+      <div class="row">
+        <div class="col-6" style="text-align: left;">
+          <a href="{% url 'home' %}">
+            <button class="btn btn-primary">All Playlists</button>
+          </a>
+        </div>
+        <div class="col-6" style="text-align: right;">
+          <a href="{% url 'logout' %}">
+            <button class="btn btn-secondary">Logout</button>
+          </a>
+        </div>
+        <div class="col-12">
+          <div class="page-header">
+            <h1>Current Playlist</h1>
+            <p class="lead">Created by {{request.user}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <a href="{% url 'search' playlist.id %}">
+            <button class="btn btn-primary btn-lg">Edit Playlist</button>
+          </a>
+        </div>
+      </div>
+      <div>
+        <h2> </h2>
+        
+      </div>
+      <div class="row" style="padding: 0 4rem;">
+
+        <div class="col-12">
+          <h2> {{playlist.name}} </h2>
+          <p class="lead"> Note: {{playlist.note}}</h3>
+            <p class="lead"> {{num_songs}} - {{playlist_duration|stringformat:"s"|slice:"0:1"}} hours {{playlist_duration|stringformat:"s"|slice:"2:4"}}  minutes </h3>
+        </div>
+        <div class="col-6">
+          {% if playlist.hidden_artwork %}
+            <img src="{% url 'playlist_photo' playlist.id %}" style="max-width:400px;width:80%">
+          {% else %}
+            <img src="https://64.media.tumblr.com/7d73e4dd16af195a9f935d579a7954dd/tumblr_p86esicUQW1uu8vlso1_1280.png"  style="max-width:400px;width:80%">
+          {% endif %}
+        </div>
+        <div class="col-6">
+          
+          <form enctype="multipart/form-data" action="{% url 'edit_playlist' playlist.id %}" method='POST'>
+            <div class="form-group" style="text-align: left;">
+              <label>Playlist name:</label>
+              <input type="text" name="name" value="{{playlist.name}}" class="form-control"> 
+            </div>
+            <div class="form-group" style="text-align: left;">
+              <label>Playlist note:</label>
+              <textarea class="form-control" rows="5" type="text" name="note">{{playlist.note}}</textarea>
+            </div>
+            <div class="form-group" style="text-align: left;">
+              <label>Hidden artwork:</label>
+              <input type="file" name="hidden_artwork">
+            </div>
+            <input class="btn btn-primary btn-lg" type="submit" value="submit">
+            {% csrf_token %}
+          </form>
+        </div>
+      </div>
+
+      
+      <div>
+        <h3> Songs </h3>
+        <ol id="songs">
+          <div class="row">
+            {% for s in songs %}
+            <div class="col-6">
+              <li id={{s.id}}>
+                <div class="row">
+                  <div class="col-6">
+                    <img src="{{s.album_artwork}}" style="max-width:200px;width:80%">
+                  </div>
+                  <div class="col-6" style="text-align: left;">
+                    <p>Song name: {{s.name}}</p>
+                    <p>Song artist: {{s.artist}}</p>
+                    <p>{{s.duration|stringformat:"s"|slice:"2:7"}}</p>
+                    <div class="row">
+                      <div class="col-6">
+                        <a href="{% url 'song' s.id %}"><button class="btn btn-primary">Edit</button></a>
+                      </div>
+                      <div class="col-6">
+                        <form action="{% url 'delete_song' %}" method='POST'>
+                          <input type="hidden" name="song_id" value="{{s.id}}"> 
+                          <input type="hidden" name="playlist_id" value="{{playlist.id}}"> 
+                          <input class="btn btn-primary" type="submit" value="Delete">
+                          {% csrf_token %}
+                        </form>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </div>
+            {% endfor %}
+          </div>
+        </ol>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+  <head>
+      <meta charset="utf-8">
+    <title> giftPlaylist  </title>
+
+    {% load static %}
+    <link href="{% static 'base.css' %}" rel="stylesheet" type="text/css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+            crossorigin="anonymous"></script>
+    <script src="{% static 'ajax_stuff.js' %}" type="text/javascript"></script>
+
+  </head>
+
+  <body>
+    <div class="jumbotron" id="receiver_grid" style="display: block;">
+        <div class="row">
+          {% if showHome %}
+          <div class="col-6" style="text-align: left;">
+            <a href="{% url 'home' %}">
+              <button class="btn btn-primary">All Playlists</button>
+            </a>
+          </div>
+	  <div class="col-6" style="text-align: right;">
+            <a href="{% url 'logout' %}">
+              <button class="btn btn-secondary">Logout</button>
+            </a>
+          </div>
+	  {% else %}
+            <div class="col-12" style="text-align: right;">
+              <a href="{% url 'logout' %}">
+                <button class="btn btn-secondary">Logout</button>
+              </a>
+            </div>
+  	  {% endif %}
+          <div class="col-12">
+            <div class="page-header">
+              <h1>{{playlist.name}}</h1>
+              {% if playlist.note %}
+                <h4>"{{playlist.note}}" - {{playlist.user.name}}</h4>
+              {% endif %}
+              <p class="lead">Click on one of the boxes to start listening and revealing the hidden image!</p>
+              
+            </div>
+          </div>
+          
+            <div class="col-12" style="justify-content: center; display: flex;">
+              <div id="grid-source" style="justify-content: center; margin-left: auto; align-items: center; display: flex;">
+              {% if playlist.hidden_artwork %}
+                <img  id="hidden_img" src="{% url 'playlist_photo' playlist.id %}" style="max-height:400px; max-width:400px; display:none;">
+              {% else %}
+                <img id="hidden_img" style="max-height:400px; max-width:400px; display:none;" src="https://64.media.tumblr.com/7d73e4dd16af195a9f935d579a7954dd/tumblr_p86esicUQW1uu8vlso1_1280.png" >
+              {% endif %}
+              </div>
+          </div>
+  
+          <div class="col-12">
+            <br>
+            <br>
+          </div>
+          
+          <!-- TODO Comment Form  -->
+          <div class="col-12" id="comments">
+            <div class="row" style="padding: 0 4rem;">
+              <div class="col-10">
+                <input class="form-control" type="text" name="comment_text" id="comment_text" value="">
+                <input class="form-control" type="hidden" name="comment_name" id="comment_name" value="{{user.name}}">
+              </div>
+              <div class="col-2">
+                <button class="btn btn-primary btn-lg" onclick="addComment('{{playlist.link_id}}')">Comment</button>
+              </div>
+            </div>
+          </div>
+	    </div>
+    </div>
+      <div class="transition" id="receiver_song" style="display: none; padding: 2rem 1rem; margin-bottom: 2rem; border-radius: 0.3rem;">
+        <div class="row">
+	  <div class="col-12">
+            <br>
+          </div>
+          <div class="col-12" style="text-align: left;">
+              <button class="btn btn-primary" onclick="hider()"> ← Grid</button>
+          </div>
+          <div class="col-12">
+            <div class="page-header">
+              <h1>Song</h1>
+              <p class="lead" id="song-name"></p>
+              <p class="lead" id="song-note"></p>
+            </div>
+          </div>
+        </div>
+  	<div class="col-12">
+          <br>
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <div class="row">
+              <div class="col-12">
+                <iframe id="song-embed" src="https://open.spotify.com/embed/track/44oL4Cwc1jkTxLH5kwHe1a" width="400"   height="480"
+                frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+              </div>
+            </div>
+          </div>
+	  <div class="col-12">
+            <br><br><br><br><br><br><br>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Referencing https://stackoverflow.com/questions/6010615/clickable-grid-over-image-in-javascript-and-jquery -->
+    <script>
+
+      $(window).on("load", function() {
+
+
+         getComments('{{playlist.link_id}}');
+         var $src = $('#grid-source');
+         var $wrap = $('<div id="grid-overlay"></div>');
+         if (parseInt('{{num_songs}}')) {
+           // var $src = document.getElementById("hidden_img");
+          
+           // var $gsize = Math.ceil(Math.max($src.find('img').innerWidth(), $src.find('img').innerHeight()) / Math.sqrt(parseInt('{{num_songs}}')))
+           var $gsize = Math.ceil(Math.max($src.find('img').innerWidth(), $src.find('img').innerHeight()) / Math.sqrt(parseInt('{{num_songs}}')))
+           // Math.ceil(Math.max($src.find('img').innerWidth(), $src.find('img').innerHeight()) / parseInt('{{num_songs}}'));
+           var $cols = Math.ceil($src.find('img').innerWidth() / $gsize);
+           var $rows = Math.ceil($src.find('img').innerHeight() / $gsize);
+
+           var allSongs = {{songs|safe}};
+           var songindex = 0;
+
+           // create overlay
+           var $tbl = $('<table></table>');
+           for (var y = 1; y <= $rows; y++) {
+               var $tr = $('<tr></tr>');
+               for (var x = 1; x <= $cols; x++) {
+                   var $td = $(`<td class="a_${songindex}"></td>`);
+                   $td.css('width', $gsize+'px').css('height', $gsize+'px');
+                   $td.addClass('unselected');
+                   $tr.append($td);
+                   songindex += 1;
+                   if (songindex >= {{num_songs}}) {
+                     songindex = 0;
+                   }
+               }
+               $tbl.append($tr);
+           };
+
+          
+           $src.css('width', $cols*$gsize+'px').css('height', $rows*$gsize+'px');
+        
+           // attach overlay
+           $wrap.append($tbl);
+           $src.after($wrap);
+           $src.find('img').css('display', 'block');
+         }
+      
+        $('#grid-overlay td').hover(function() {
+            $(this).toggleClass('hover');
+        });
+        
+        $('#grid-overlay td').click(function() {
+          var a_class = $(this).attr("class").split(' ')[0];
+          var toggled = $(this).attr("class").split(' ')[1];
+          $(`.${a_class}`).each(function() {
+            if (toggled == `unselected`) {
+              $(this).toggleClass('selected').toggleClass('unselected');
+            }
+          });
+          
+          hider();
+          selectSong(parseInt(a_class.substr(2)));
+        });
+
+    
+      window.onload = getComments('{{playlist.link_id}}');
+
+      window.setInterval(function() {getComments('{{playlist.link_id}}')}, 5000);
+        
+      });
+
+      var allSongs = {{songs|safe}};
+      var songindex = 0;
+
+      function hider() {
+        selectSong(0); // to stop current playing song if its still playing
+        var x = document.getElementById("receiver_grid");
+        var y = document.getElementById("receiver_song");
+        if (x.style.display === "none") {
+          x.style.display = "block";
+        } else {
+          x.style.display = "none";
+        }
+
+        if (y.style.display === "none") {
+          y.style.display = "block";
+        } else {
+          y.style.display = "none";
+        }
+      }
+
+      function selectSong(id) {
+        var x = document.getElementById("song-name");
+        x.innerHTML = allSongs[id].name;
+        var z = document.getElementById("song-note");
+        z.innerHTML = allSongs[id].note && (allSongs[id].note + " - " + "{{playlist.user.name}}");
+        var y = document.getElementById("song-embed");
+        $(y).attr("src", `https://open.spotify.com/embed/track/${allSongs[id].spotify_id}`);
+      }
+
+      window.onload = getComments('{{playlist.link_id}}');
+        
+      window.setInterval(getComments('{{playlist.link_id}}'), 5000);
+
+    </script>
+  </body>
